@@ -27,7 +27,8 @@ type Config struct {
 
 	// This is the name of the new virtual machine.
 	// By default this is "packer-BUILDNAME", where "BUILDNAME" is the name of the build.
-	VMName string `mapstructure:"vm_name"`
+	OutputDir string `mapstructure:"output_dir"`
+	VMName    string `mapstructure:"vm_name"`
 
 	Communicator string `mapstructure:"communicator"`
 
@@ -63,6 +64,10 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 
 	// Accumulate any errors and warnings
 	var errs *packer.MultiError
+
+	if b.config.OutputDir == "" {
+		b.config.OutputDir = fmt.Sprintf("output-%s", c.PackerBuildName)
+	}
 
 	if b.config.TeardownMethod == "" {
 		b.config.TeardownMethod = "halt"
