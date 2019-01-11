@@ -14,10 +14,10 @@ import (
 
 type VagrantDriver interface {
 	// Calls "vagrant init"
-	Init() error
+	Init([]string) error
 
 	// Calls "vagrant add"
-	Add() error
+	Add([]string) error
 
 	// Calls "vagrant up"
 	Up() error

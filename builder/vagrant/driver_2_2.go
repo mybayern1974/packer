@@ -11,14 +11,15 @@ type Vagrant_2_2_Driver struct {
 }
 
 // Calls "vagrant init"
-func (d *Vagrant_2_2_Driver) Init() error {
-	_, _, err := d.vagrantCmd([]string{"init"})
+func (d *Vagrant_2_2_Driver) Init(args []string) error {
+	_, _, err := d.vagrantCmd(append([]string{"init"}, args))
 	return err
 }
 
 // Calls "vagrant add"
-func (d *Vagrant_2_2_Driver) Add() error {
-	_, _, err := d.vagrantCmd([]string{"add"})
+func (d *Vagrant_2_2_Driver) Add(args []string) error {
+	// vagrant box add partyvm ubuntu-14.04.vmware.box
+	_, _, err := d.vagrantCmd(append([]string{"box", "add"}, args))
 	return err
 }
 

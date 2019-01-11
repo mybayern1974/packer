@@ -111,10 +111,27 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 
 	// Build the steps.
 	steps := []multistep.Step{
-		// step create output dir
-
-		// step initialize vagrant
-
+		&common.StepOutputDir{
+			Force: b.config.PackerForce,
+			Path:  b.config.OutputDir,
+		},
+		&StepInitializeVagrant{
+			BoxVersion: b.config.BoxVersion,
+			Minimal:    b.config.Minimal,
+			Template:   b.config.Template,
+			BoxName:    b.config.BoxName,
+		},
+		&StepAddBox{
+			BoxVersion:   b.config.BoxVersion,
+			CACert:       b.config.AddCACert,
+			CAPath:       b.config.AddCAPath,
+			DownloadCert: b.config.AddDownloadCert,
+			Clean:        b.config.AddClean,
+			Force:        b.config.AddForce,
+			Insecure:     b.config.AddInsecure,
+			Provider:     b.config.Provider,
+			Address:      b.config.BoxName,
+		},
 		// step load box
 
 		// step provision
