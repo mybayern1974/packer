@@ -132,6 +132,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			Provider:     b.config.Provider,
 			Address:      b.config.BoxName,
 		},
+		&StepUp{},
 		// step load box
 
 		// step provision
