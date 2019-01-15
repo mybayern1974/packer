@@ -167,10 +167,11 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			WinRMPort: vboxcommon.SSHPort,
 		},
 		new(common.StepProvision),
+		&StepHalt{
+			b.config.TeardownMethod,
+		},
 
-		// step shutdown
-
-		// step package box
+		// Step package box
 	}
 
 	// Run the steps.
