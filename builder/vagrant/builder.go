@@ -18,12 +18,17 @@ type Builder struct {
 	runner multistep.Runner
 }
 
+type SSHConfig struct {
+	Comm communicator.Config `mapstructure:",squash"`
+}
+
 type Config struct {
 	common.PackerConfig    `mapstructure:",squash"`
 	common.HTTPConfig      `mapstructure:",squash"`
 	common.ISOConfig       `mapstructure:",squash"`
 	common.FloppyConfig    `mapstructure:",squash"`
 	bootcommand.BootConfig `mapstructure:",squash"`
+	SSHConfig              `mapstructure:",squash"`
 
 	// This is the name of the new virtual machine.
 	// By default this is "packer-BUILDNAME", where "BUILDNAME" is the name of the build.
@@ -38,8 +43,22 @@ type Config struct {
 	// Whether to Halt, Suspend, or Destroy the box
 	TeardownMethod string `mapstructure:"teardown_method"`
 
-	// Override the default provider
-	Provider string `mapstructure:"provider"`
+	// Options for the "vagrant init" command
+	BoxVersion        string `mapstructure:"box_version"`
+	Minimal           bool   `mapstructure:"init_minimal"`
+	OutputVagrantfile string `mapstructure:"output_vagrantfile"`
+	Template          string `mapstructure:"template"`
+
+	// Options for the "vagrant box add" command
+	AddCACert       string `mapstructure:"add_cacert"`
+	AddCAPath       string `mapstructure:"add_capath"`
+	AddDownloadCert string `mapstructure:"add_cert"`
+	AddClean        bool   `mapstructure:"add_clean"`
+	AddForce        bool   `mapstructure:"add_force"`
+	AddInsecure     bool   `mapstructure:"add_insecure"`
+
+	// what folder to sync. Defaults to current build dir.
+	SyncedFolder string `mapstructure:"synced_folder"`
 
 	// Don't package the Vagrant box after build.
 	SkipPackage bool `mapstructure:"skip_package"`
@@ -119,23 +138,34 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			BoxVersion: b.config.BoxVersion,
 			Minimal:    b.config.Minimal,
 			Template:   b.config.Template,
-			BoxName:    b.config.BoxName,
+			BoxName:    b.config.VMName,
 		},
-		&StepAddBox{
-			BoxVersion:   b.config.BoxVersion,
-			CACert:       b.config.AddCACert,
-			CAPath:       b.config.AddCAPath,
-			DownloadCert: b.config.AddDownloadCert,
-			Clean:        b.config.AddClean,
-			Force:        b.config.AddForce,
-			Insecure:     b.config.AddInsecure,
-			Provider:     b.config.Provider,
-			Address:      b.config.BoxName,
+		// &StepAddBox{
+		// 	BoxVersion:   b.config.BoxVersion,
+		// 	CACert:       b.config.AddCACert,
+		// 	CAPath:       b.config.AddCAPath,
+		// 	DownloadCert: b.config.AddDownloadCert,
+		// 	Clean:        b.config.AddClean,
+		// 	Force:        b.config.AddForce,
+		// 	Insecure:     b.config.AddInsecure,
+		// 	Provider:     b.config.Provider,
+		// 	Address:      b.config.VMName,
+		// },
+		// Don't need an http server when vagrant does sharing for us.
+		&StepSyncedFolder{
+			SyncedFolder: b.config.SyncedFolder,
 		},
 		&StepUp{},
-		// step load box
-
-		// step provision
+		// In StepUp, we get ssh information from the vagrant up command stdout.
+		// and save it to state. This function wraps communicator.StepConnect
+		// so that we can pass in the information we need.
+		&communicator.StepConnect{
+			Config:    &b.config.SSHConfig.Comm,
+			Host:      vboxcommon.CommHost(b.config.SSHConfig.Comm.SSHHost),
+			SSHConfig: b.config.SSHConfig.Comm.SSHConfigFunc(),
+			SSHPort:   vboxcommon.SSHPort,
+			WinRMPort: vboxcommon.SSHPort,
+		},
 		new(common.StepProvision),
 
 		// step shutdown

@@ -24,9 +24,9 @@ func (d *Vagrant_2_2_Driver) Add(args []string) error {
 }
 
 // Calls "vagrant up"
-func (d *Vagrant_2_2_Driver) Up() error {
-	_, _, err := d.vagrantCmd([]string{"up"})
-	return err
+func (d *Vagrant_2_2_Driver) Up() (string, string, error) {
+	stdout, stderr, err := d.vagrantCmd([]string{"up"})
+	return stdout, stderr, err
 }
 
 // Calls "vagrant halt"
@@ -60,6 +60,50 @@ func (d *Vagrant_2_2_Driver) Verify() error {
 		return fmt.Errorf("Can't find Vagrant binary!")
 	}
 	return nil
+}
+
+type VagrantSSHConfig struct {
+	HostName               string
+	User                   string
+	Port                   string
+	UserKnownHostsFile     string
+	StrictHostKeyChecking  bool
+	PasswordAuthentication bool
+	IdentityFile           string
+	IdentitiesOnly         bool
+	LogLevel               string
+}
+
+func parseSSHConfig(lines []string, value string) string {
+	out := ""
+	for _, line := range lines {
+		if index := strings.Index(line, value); index != -1 {
+			out := line[index+len(value):]
+		}
+	}
+	return out
+}
+
+func (d *Vagrant_2_2_Driver) SSHConfig() (*VagrantSSHConfig, error) {
+	// vagrant ssh-config --host 8df7860
+	stdout, stderr, err := d.vagrantCmd([]string{"ssh_config"})
+	sshConf := &VagrantSSHConfig{}
+
+	var hostName, user, port, userKnownHostsFile, identityFile, logLevel string
+	var strictHostKeyChecking, passwordAuthentication, identitiesOnly bool
+
+	lines := strings.Split(mystring, "\n")
+	sshConf.Hostname = parseSSHConfig(lines, "Hostname ")
+	sshConf.User = parseSSHConfig(lines, "User ")
+	sshConf.Port = parseSSHConfig(lines, "Port ")
+	sshConf.UserKnownHostsFile = parseSSHConfig(lines, "UserKnownHostsFile ")
+	sshConf.StrictHostKeyChecking = parseSSHConfig(lines, "StrictHostKeyChecking ")
+	sshConf.PasswordAuthentication = parseSSHConfig(lines, "PasswordAuthentication ")
+	sshConf.IdentityFile = parseSSHConfig(lines, "IdentityFile ")
+	sshConf.IdentitiesOnly = parseSSHConfig(lines, "IdentitiesOnly ")
+	sshConf.LogLevel = parseSSHConfig(lines, "LogLevel ")
+
+	return &VagrantSSHConfig, err
 }
 
 // Version reads the version of VirtualBox that is installed.

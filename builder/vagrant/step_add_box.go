@@ -16,6 +16,9 @@ func (s *StepAddBox) Run(_ context.Context, state multistep.StateBag) multistep.
 	driver := state.Get("driver").(Driver)
 	ui := state.Get("ui").(packer.Ui)
 
+	ui.Say("The Add Box step is current under development. Skipping.")
+	multiste.ActionContinue
+
 	// Prepare arguments
 	addArgs := []string{}
 
