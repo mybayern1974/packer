@@ -7,7 +7,10 @@ import (
 	"github.com/hashicorp/packer/helper/multistep"
 )
 
-// mmarsh@Megans-MBP  ~/Projects/vagrant-boxes/ubuntu   master ●  vagrant ssh-config
+// Vagrant already sets up ssh on the guests; our job is to find out what
+// it did. We can do that with the ssh-config command.  Example output:
+
+// $ vagrant ssh-config
 // Host default
 //   HostName 172.16.41.194
 //   User vagrant
@@ -26,16 +29,15 @@ func (s *StepSSHConfig) Run(_ context.Context, state multistep.StateBag) multist
 	config := state.Get("config").(*Config)
 
 	sshConfig, err := driver.SSHConfig()
+	if err != nil {
+		state.Put("error", err)
+		return multistep.ActionHalt
+	}
 
 	config.Comm.SSHConfig.SSHPrivateKeyFile = sshConfig.IdentityFile
 	config.Comm.SSHConfig.SSHUsername = sshConfig.User
 	config.Comm.SSHConfig.SSHHost = sshConfig.HostName
 	config.Comm.SSHConfig.SSHPort = sshConfig.Port
-
-	if err != nil {
-		state.Put("error", err)
-		return multistep.ActionHalt
-	}
 
 	return multistep.ActionContinue
 }
