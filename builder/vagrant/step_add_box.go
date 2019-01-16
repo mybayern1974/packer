@@ -20,7 +20,7 @@ type StepAddBox struct {
 }
 
 func (s *StepAddBox) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
-	driver := state.Get("driver").(VagrantDriver)
+	// driver := state.Get("driver").(VagrantDriver)
 	ui := state.Get("ui").(packer.Ui)
 
 	ui.Say("The Add Box step is current under development. Skipping.")

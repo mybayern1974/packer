@@ -60,7 +60,7 @@ func (d *Vagrant_2_2_Driver) Package(output string, include []string, vagrantfil
 
 // Verify makes sure that Vagrant exists at the given path
 func (d *Vagrant_2_2_Driver) Verify() error {
-	fi, err := os.Stat(d.vagrantPath)
+	_, err := os.Stat(d.vagrantPath)
 	if err != nil {
 		return fmt.Errorf("Can't find Vagrant binary!")
 	}
@@ -83,7 +83,7 @@ func parseSSHConfig(lines []string, value string) string {
 	out := ""
 	for _, line := range lines {
 		if index := strings.Index(line, value); index != -1 {
-			out := line[index+len(value):]
+			out = line[index+len(value):]
 		}
 	}
 	return out
@@ -91,11 +91,8 @@ func parseSSHConfig(lines []string, value string) string {
 
 func (d *Vagrant_2_2_Driver) SSHConfig() (*VagrantSSHConfig, error) {
 	// vagrant ssh-config --host 8df7860
-	stdout, stderr, err := d.vagrantCmd([]string{"ssh_config"}...)
+	stdout, _, err := d.vagrantCmd([]string{"ssh_config"}...)
 	sshConf := &VagrantSSHConfig{}
-
-	var hostName, user, port, userKnownHostsFile, identityFile, logLevel string
-	var strictHostKeyChecking, passwordAuthentication, identitiesOnly bool
 
 	lines := strings.Split(stdout, "\n")
 	sshConf.Hostname = parseSSHConfig(lines, "Hostname ")
@@ -129,7 +126,7 @@ func (d *Vagrant_2_2_Driver) SSHConfig() (*VagrantSSHConfig, error) {
 
 // Version reads the version of VirtualBox that is installed.
 func (d *Vagrant_2_2_Driver) Version() (string, error) {
-	stdoutString, stderrString, err := d.vagrantCmd([]string{"version"}...)
+	stdoutString, _, err := d.vagrantCmd([]string{"version"}...)
 	// Example stdout:
 
 	// 	Installed Version: 2.2.3

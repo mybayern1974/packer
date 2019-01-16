@@ -18,6 +18,8 @@ func (s *StepInitializeVagrant) Run(_ context.Context, state multistep.StateBag)
 	driver := state.Get("driver").(VagrantDriver)
 	ui := state.Get("ui").(packer.Ui)
 
+	ui.Say("Initializing Vagrant in build directory...")
+
 	// Prepare arguments
 	initArgs := []string{}
 
