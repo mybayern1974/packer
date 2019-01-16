@@ -133,13 +133,11 @@ func (s *StepConnectSSH) waitForSSH(state multistep.StateBag, cancel <-chan stru
 
 		// First we request the TCP connection information
 		host, err := s.Host(state)
-		log.Printf("MEGAN host is %s\n", host)
 		if err != nil {
 			log.Printf("[DEBUG] Error getting SSH address: %s", err)
 			continue
 		}
 		port := s.Config.SSHPort
-		log.Printf("MEGAN port is %s\n", port)
 		if s.SSHPort != nil {
 			port, err = s.SSHPort(state)
 			if err != nil {
@@ -150,7 +148,6 @@ func (s *StepConnectSSH) waitForSSH(state multistep.StateBag, cancel <-chan stru
 
 		// Retrieve the SSH configuration
 		sshConfig, err := s.SSHConfig(state)
-		log.Printf("MEGAN ssh config is %#v", sshConfig)
 		if err != nil {
 			log.Printf("[DEBUG] Error getting SSH config: %s", err)
 			continue
@@ -159,7 +156,6 @@ func (s *StepConnectSSH) waitForSSH(state multistep.StateBag, cancel <-chan stru
 		// Attempt to connect to SSH port
 		var connFunc func() (net.Conn, error)
 		address := fmt.Sprintf("%s:%d", host, port)
-		log.Printf("MEGAN address is %s", address)
 		if bAddr != "" {
 			// We're using a bastion host, so use the bastion connfunc
 			connFunc = ssh.BastionConnectFunc(
