@@ -2,6 +2,7 @@ package vagrant
 
 import (
 	"context"
+	"log"
 	"strconv"
 
 	"github.com/hashicorp/packer/helper/multistep"
@@ -44,6 +45,7 @@ func (s *StepSSHConfig) Run(_ context.Context, state multistep.StateBag) multist
 	}
 	config.Comm.SSHPort = port
 
+	log.Printf("MEGAN ssh config is %#v", sshConfig)
 	return multistep.ActionContinue
 }
 

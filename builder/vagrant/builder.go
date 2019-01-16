@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/packer/common"
 	"github.com/hashicorp/packer/common/bootcommand"
@@ -72,6 +73,7 @@ type Config struct {
 
 // Prepare processes the build configuration parameters.
 func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
+	b.config = new(Config)
 	err := config.Decode(&b.config, &config.DecodeOpts{
 		Interpolate:        true,
 		InterpolateContext: &b.config.ctx,
@@ -91,6 +93,15 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 
 	if b.config.OutputDir == "" {
 		b.config.OutputDir = fmt.Sprintf("output-%s", b.config.PackerBuildName)
+	}
+
+	if b.config.Comm.SSHTimeout == 0 {
+		b.config.Comm.SSHTimeout = 10 * time.Minute
+	}
+
+	if b.config.Comm.Type != "ssh" {
+		errs = packer.MultiErrorAppend(errs,
+			fmt.Errorf(`The Vagrant builder currently only supports the ssh communicator"`))
 	}
 
 	if b.config.TeardownMethod == "" {
@@ -164,12 +175,11 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 		// In StepUp, we get ssh information from the vagrant up command stdout.
 		// and save it to state. This function wraps communicator.StepConnect
 		// so that we can pass in the information we need.
+		&StepSSHConfig{},
 		&communicator.StepConnect{
 			Config:    &b.config.SSHConfig.Comm,
-			Host:      CommHost(&b.config.SSHConfig),
+			Host:      CommHost(),
 			SSHConfig: b.config.SSHConfig.Comm.SSHConfigFunc(),
-			SSHPort:   SSHPort(&b.config.SSHConfig),
-			WinRMPort: SSHPort(&b.config.SSHConfig),
 		},
 		new(common.StepProvision),
 		&StepHalt{

@@ -2,6 +2,8 @@ package vagrant
 
 import (
 	"context"
+	"log"
+	"strings"
 
 	"github.com/hashicorp/packer/helper/multistep"
 	"github.com/hashicorp/packer/packer"
@@ -40,6 +42,10 @@ func (s *StepInitializeVagrant) Run(_ context.Context, state multistep.StateBag)
 	// Call vagrant using prepared arguments
 	err := driver.Init(initArgs)
 	if err != nil {
+		if strings.Contains(err.Error(), "already exists in this directory") {
+			log.Println("Vagrantfile already exists; using present Vagrantfile rather than initializing.")
+			return multistep.ActionContinue
+		}
 		state.Put("error", err)
 		return multistep.ActionHalt
 	}

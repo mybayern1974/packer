@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -89,13 +88,20 @@ func parseSSHConfig(lines []string, value string) string {
 	return out
 }
 
+func yesno(yn string) bool {
+	if yn == "no" {
+		return false
+	}
+	return true
+}
+
 func (d *Vagrant_2_2_Driver) SSHConfig() (*VagrantSSHConfig, error) {
 	// vagrant ssh-config --host 8df7860
-	stdout, _, err := d.vagrantCmd([]string{"ssh_config"}...)
+	stdout, _, err := d.vagrantCmd([]string{"ssh-config"}...)
 	sshConf := &VagrantSSHConfig{}
 
 	lines := strings.Split(stdout, "\n")
-	sshConf.Hostname = parseSSHConfig(lines, "Hostname ")
+	sshConf.Hostname = parseSSHConfig(lines, "HostName ")
 	sshConf.User = parseSSHConfig(lines, "User ")
 	sshConf.Port = parseSSHConfig(lines, "Port ")
 	sshConf.UserKnownHostsFile = parseSSHConfig(lines, "UserKnownHostsFile ")
@@ -103,23 +109,9 @@ func (d *Vagrant_2_2_Driver) SSHConfig() (*VagrantSSHConfig, error) {
 	sshConf.LogLevel = parseSSHConfig(lines, "LogLevel ")
 
 	// handle the booleans
-	b, err := strconv.ParseBool(parseSSHConfig(lines, "StrictHostKeyChecking "))
-	if err != nil {
-		return nil, err
-	}
-	sshConf.StrictHostKeyChecking = b
-
-	b, err = strconv.ParseBool(parseSSHConfig(lines, "PasswordAuthentication "))
-	if err != nil {
-		return nil, err
-	}
-	sshConf.PasswordAuthentication = b
-
-	b, err = strconv.ParseBool(parseSSHConfig(lines, "IdentitiesOnly "))
-	if err != nil {
-		return nil, err
-	}
-	sshConf.IdentitiesOnly = b
+	sshConf.StrictHostKeyChecking = yesno(parseSSHConfig(lines, "StrictHostKeyChecking "))
+	sshConf.PasswordAuthentication = yesno(parseSSHConfig(lines, "PasswordAuthentication "))
+	sshConf.IdentitiesOnly = yesno((parseSSHConfig(lines, "IdentitiesOnly ")))
 
 	return sshConf, err
 }
@@ -142,7 +134,6 @@ func (d *Vagrant_2_2_Driver) Version() (string, error) {
 	}
 
 	return version, nil
-
 }
 
 func (d *Vagrant_2_2_Driver) vagrantCmd(args ...string) (string, string, error) {
