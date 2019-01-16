@@ -1,5 +1,12 @@
 package vagrant
 
+import (
+	"context"
+
+	"github.com/hashicorp/packer/helper/multistep"
+	"github.com/hashicorp/packer/packer"
+)
+
 type StepAddBox struct {
 	BoxVersion   string
 	CACert       string
@@ -13,57 +20,57 @@ type StepAddBox struct {
 }
 
 func (s *StepAddBox) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
-	driver := state.Get("driver").(Driver)
+	driver := state.Get("driver").(VagrantDriver)
 	ui := state.Get("ui").(packer.Ui)
 
 	ui.Say("The Add Box step is current under development. Skipping.")
-	multiste.ActionContinue
-
-	// Prepare arguments
-	addArgs := []string{}
-
-	if s.BoxVersion != "" {
-		addArgs = append(initArgs, "--box-version", s.BoxVersion)
-	}
-
-	if s.CACert != "" {
-		addArgs = append(initArgs, "--cacert", s.CACert)
-	}
-
-	if s.CAPath != "" {
-		addArgs = append(initArgs, "--capath", s.CAPath)
-	}
-
-	if s.DownloadCert != "" {
-		addArgs = append(initArgs, "--cert", s.DownloadCert)
-	}
-
-	if s.Clean {
-		addArgs = append(initArgs, "--clean")
-	}
-
-	if s.Force {
-		addArgs = append(initArgs, "--force")
-	}
-
-	if s.Insecure {
-		addArgs = append(initArgs, "--insecure")
-	}
-
-	if s.Provider != "" {
-		addArgs = append(initArgs, "--provider", s.Provider)
-	}
-
-	addArgs = append(initArgs, Address)
-
-	// Call vagrant using prepared arguments
-	err := driver.Add(addArgs)
-	if err != nil {
-		state.Put("error", err)
-		return multistep.ActionHalt
-	}
-
 	return multistep.ActionContinue
+
+	// // Prepare arguments
+	// addArgs := []string{}
+
+	// if s.BoxVersion != "" {
+	// 	addArgs = append(addArgs, "--box-version", s.BoxVersion)
+	// }
+
+	// if s.CACert != "" {
+	// 	addArgs = append(addArgs, "--cacert", s.CACert)
+	// }
+
+	// if s.CAPath != "" {
+	// 	addArgs = append(addArgs, "--capath", s.CAPath)
+	// }
+
+	// if s.DownloadCert != "" {
+	// 	addArgs = append(addArgs, "--cert", s.DownloadCert)
+	// }
+
+	// if s.Clean {
+	// 	addArgs = append(addArgs, "--clean")
+	// }
+
+	// if s.Force {
+	// 	addArgs = append(addArgs, "--force")
+	// }
+
+	// if s.Insecure {
+	// 	addArgs = append(addArgs, "--insecure")
+	// }
+
+	// if s.Provider != "" {
+	// 	addArgs = append(addArgs, "--provider", s.Provider)
+	// }
+
+	// addArgs = append(addArgs, s.Address)
+
+	// // Call vagrant using prepared arguments
+	// err := driver.Add(addArgs)
+	// if err != nil {
+	// 	state.Put("error", err)
+	// 	return multistep.ActionHalt
+	// }
+
+	// return multistep.ActionContinue
 }
 
 func (s *StepAddBox) Cleanup(state multistep.StateBag) {

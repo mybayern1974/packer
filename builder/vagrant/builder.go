@@ -4,11 +4,15 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/hashicorp/packer/common"
+	"github.com/hashicorp/packer/common/bootcommand"
 	"github.com/hashicorp/packer/helper/communicator"
+	"github.com/hashicorp/packer/helper/config"
 	"github.com/hashicorp/packer/helper/multistep"
 	"github.com/hashicorp/packer/packer"
+	"github.com/hashicorp/packer/template/interpolate"
 )
 
 // Builder implements packer.Builder and builds the actual VirtualBox
@@ -83,9 +87,10 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 
 	// Accumulate any errors and warnings
 	var errs *packer.MultiError
+	warnings := make([]string, 0)
 
 	if b.config.OutputDir == "" {
-		b.config.OutputDir = fmt.Sprintf("output-%s", c.PackerBuildName)
+		b.config.OutputDir = fmt.Sprintf("output-%s", b.config.PackerBuildName)
 	}
 
 	if b.config.TeardownMethod == "" {
@@ -93,7 +98,7 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 	} else {
 		matches := false
 		for _, name := range []string{"halt", "suspend", "destroy"} {
-			if strings.ToLower(b.config.TeradownMethod) == name {
+			if strings.ToLower(b.config.TeardownMethod) == name {
 				matches = true
 			}
 		}
@@ -161,10 +166,10 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 		// so that we can pass in the information we need.
 		&communicator.StepConnect{
 			Config:    &b.config.SSHConfig.Comm,
-			Host:      vboxcommon.CommHost(b.config.SSHConfig.Comm.SSHHost),
+			Host:      CommHost(&b.config.SSHConfig),
 			SSHConfig: b.config.SSHConfig.Comm.SSHConfigFunc(),
-			SSHPort:   vboxcommon.SSHPort,
-			WinRMPort: vboxcommon.SSHPort,
+			SSHPort:   SSHPort(&b.config.SSHConfig),
+			WinRMPort: SSHPort(&b.config.SSHConfig),
 		},
 		new(common.StepProvision),
 		&StepHalt{

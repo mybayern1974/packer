@@ -1,12 +1,9 @@
 package vagrant
 
 import (
-	"errors"
-	"fmt"
-	"log"
-
-	"github.com/hashicorp/packer/common"
-	"github.com/hashicorp/packer/packer"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 // A driver is able to talk to Vagrant and perform certain
@@ -45,10 +42,10 @@ type VagrantDriver interface {
 	Version() (string, error)
 }
 
-func NewDriver() (Driver, error) {
+func NewDriver() (VagrantDriver, error) {
 	// Hardcode path for now while I'm developing. Obviously this path needs
 	// to be discovered based on OS.
-	vagrantPath = "/usr/local/bin/vagrant"
+	vagrantPath := "/usr/local/bin/vagrant"
 
 	driver := &Vagrant_2_2_Driver{
 		vagrantPath: vagrantPath,

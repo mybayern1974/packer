@@ -1,5 +1,12 @@
 package vagrant
 
+import (
+	"context"
+
+	"github.com/hashicorp/packer/helper/multistep"
+	"github.com/hashicorp/packer/packer"
+)
+
 type StepSyncedFolder struct {
 	SyncedFolder string
 }
@@ -19,11 +26,11 @@ func (s *StepSyncedFolder) Run(_ context.Context, state multistep.StateBag) mult
 	// }
 
 	// TODO Modify vagrantfile to sync folder.
-	if s.SyncedFolder == "" {
-		return multistep.ActionContinue
-	}
+	// if s.SyncedFolder == "" {
+	// 	return multistep.ActionContinue
+	// }
 
-	return multistep.ActionContinue
+	// return multistep.ActionContinue
 }
 
 func (s *StepSyncedFolder) Cleanup(state multistep.StateBag) {

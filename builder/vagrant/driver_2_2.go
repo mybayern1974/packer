@@ -1,9 +1,14 @@
 package vagrant
 
 import (
+	"bytes"
 	"fmt"
+	"log"
 	"os"
+	"os/exec"
 	"regexp"
+	"strconv"
+	"strings"
 )
 
 type Vagrant_2_2_Driver struct {
@@ -12,58 +17,58 @@ type Vagrant_2_2_Driver struct {
 
 // Calls "vagrant init"
 func (d *Vagrant_2_2_Driver) Init(args []string) error {
-	_, _, err := d.vagrantCmd(append([]string{"init"}, args))
+	_, _, err := d.vagrantCmd(append([]string{"init"}, args...)...)
 	return err
 }
 
 // Calls "vagrant add"
 func (d *Vagrant_2_2_Driver) Add(args []string) error {
 	// vagrant box add partyvm ubuntu-14.04.vmware.box
-	_, _, err := d.vagrantCmd(append([]string{"box", "add"}, args))
+	_, _, err := d.vagrantCmd(append([]string{"box", "add"}, args...)...)
 	return err
 }
 
 // Calls "vagrant up"
 func (d *Vagrant_2_2_Driver) Up() (string, string, error) {
-	stdout, stderr, err := d.vagrantCmd([]string{"up"})
+	stdout, stderr, err := d.vagrantCmd([]string{"up"}...)
 	return stdout, stderr, err
 }
 
 // Calls "vagrant halt"
 func (d *Vagrant_2_2_Driver) Halt() error {
-	_, _, err := d.vagrantCmd([]string{"halt"})
+	_, _, err := d.vagrantCmd([]string{"halt"}...)
 	return err
 }
 
 // Calls "vagrant suspend"
 func (d *Vagrant_2_2_Driver) Suspend() error {
-	_, _, err := d.vagrantCmd([]string{"suspend"})
+	_, _, err := d.vagrantCmd([]string{"suspend"}...)
 	return err
 }
 
 // Calls "vagrant destroy"
 func (d *Vagrant_2_2_Driver) Destroy() error {
-	_, _, err := d.vagrantCmd([]string{"destroy"})
+	_, _, err := d.vagrantCmd([]string{"destroy"}...)
 	return err
 }
 
 // Calls "vagrant package"
-func (d *Vagrant_2_2_Driver) Package(output string, include []string, vagrantfile string) {
-	_, _, err := d.vagrantCmd([]string{"package"})
+func (d *Vagrant_2_2_Driver) Package(output string, include []string, vagrantfile string) error {
+	_, _, err := d.vagrantCmd([]string{"package"}...)
 	return err
 }
 
 // Verify makes sure that Vagrant exists at the given path
 func (d *Vagrant_2_2_Driver) Verify() error {
 	fi, err := os.Stat(d.vagrantPath)
-	if err {
+	if err != nil {
 		return fmt.Errorf("Can't find Vagrant binary!")
 	}
 	return nil
 }
 
 type VagrantSSHConfig struct {
-	HostName               string
+	Hostname               string
 	User                   string
 	Port                   string
 	UserKnownHostsFile     string
@@ -86,29 +91,45 @@ func parseSSHConfig(lines []string, value string) string {
 
 func (d *Vagrant_2_2_Driver) SSHConfig() (*VagrantSSHConfig, error) {
 	// vagrant ssh-config --host 8df7860
-	stdout, stderr, err := d.vagrantCmd([]string{"ssh_config"})
+	stdout, stderr, err := d.vagrantCmd([]string{"ssh_config"}...)
 	sshConf := &VagrantSSHConfig{}
 
 	var hostName, user, port, userKnownHostsFile, identityFile, logLevel string
 	var strictHostKeyChecking, passwordAuthentication, identitiesOnly bool
 
-	lines := strings.Split(mystring, "\n")
+	lines := strings.Split(stdout, "\n")
 	sshConf.Hostname = parseSSHConfig(lines, "Hostname ")
 	sshConf.User = parseSSHConfig(lines, "User ")
 	sshConf.Port = parseSSHConfig(lines, "Port ")
 	sshConf.UserKnownHostsFile = parseSSHConfig(lines, "UserKnownHostsFile ")
-	sshConf.StrictHostKeyChecking = parseSSHConfig(lines, "StrictHostKeyChecking ")
-	sshConf.PasswordAuthentication = parseSSHConfig(lines, "PasswordAuthentication ")
 	sshConf.IdentityFile = parseSSHConfig(lines, "IdentityFile ")
-	sshConf.IdentitiesOnly = parseSSHConfig(lines, "IdentitiesOnly ")
 	sshConf.LogLevel = parseSSHConfig(lines, "LogLevel ")
 
-	return &VagrantSSHConfig, err
+	// handle the booleans
+	b, err := strconv.ParseBool(parseSSHConfig(lines, "StrictHostKeyChecking "))
+	if err != nil {
+		return nil, err
+	}
+	sshConf.StrictHostKeyChecking = b
+
+	b, err = strconv.ParseBool(parseSSHConfig(lines, "PasswordAuthentication "))
+	if err != nil {
+		return nil, err
+	}
+	sshConf.PasswordAuthentication = b
+
+	b, err = strconv.ParseBool(parseSSHConfig(lines, "IdentitiesOnly "))
+	if err != nil {
+		return nil, err
+	}
+	sshConf.IdentitiesOnly = b
+
+	return sshConf, err
 }
 
 // Version reads the version of VirtualBox that is installed.
 func (d *Vagrant_2_2_Driver) Version() (string, error) {
-	stdoutString, stderrString, err := d.vagrantCmd([]string{"version"})
+	stdoutString, stderrString, err := d.vagrantCmd([]string{"version"}...)
 	// Example stdout:
 
 	// 	Installed Version: 2.2.3

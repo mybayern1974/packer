@@ -1,5 +1,12 @@
 package vagrant
 
+import (
+	"context"
+
+	"github.com/hashicorp/packer/helper/multistep"
+	"github.com/hashicorp/packer/packer"
+)
+
 type StepInitializeVagrant struct {
 	BoxVersion string
 	Minimal    bool
@@ -8,7 +15,7 @@ type StepInitializeVagrant struct {
 }
 
 func (s *StepInitializeVagrant) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
-	driver := state.Get("driver").(Driver)
+	driver := state.Get("driver").(VagrantDriver)
 	ui := state.Get("ui").(packer.Ui)
 
 	// Prepare arguments
@@ -22,7 +29,7 @@ func (s *StepInitializeVagrant) Run(_ context.Context, state multistep.StateBag)
 		initArgs = append(initArgs, "-m")
 	}
 
-	if s.Template {
+	if s.Template != "" {
 		initArgs = append(initArgs, "--template", s.Template)
 	}
 

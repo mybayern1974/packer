@@ -1,8 +1,8 @@
 package vagrant
 
 import (
-	"log"
-	"strings"
+	"context"
+	"strconv"
 
 	"github.com/hashicorp/packer/helper/multistep"
 )
@@ -25,7 +25,7 @@ import (
 type StepSSHConfig struct{}
 
 func (s *StepSSHConfig) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
-	driver := state.Get("driver").(Driver)
+	driver := state.Get("driver").(VagrantDriver)
 	config := state.Get("config").(*Config)
 
 	sshConfig, err := driver.SSHConfig()
@@ -34,10 +34,15 @@ func (s *StepSSHConfig) Run(_ context.Context, state multistep.StateBag) multist
 		return multistep.ActionHalt
 	}
 
-	config.Comm.SSHConfig.SSHPrivateKeyFile = sshConfig.IdentityFile
-	config.Comm.SSHConfig.SSHUsername = sshConfig.User
-	config.Comm.SSHConfig.SSHHost = sshConfig.HostName
-	config.Comm.SSHConfig.SSHPort = sshConfig.Port
+	config.Comm.SSHPrivateKeyFile = sshConfig.IdentityFile
+	config.Comm.SSHUsername = sshConfig.User
+	config.Comm.SSHHost = sshConfig.Hostname
+	port, err := strconv.Atoi(sshConfig.Port)
+	if err != nil {
+		state.Put("error", err)
+		return multistep.ActionHalt
+	}
+	config.Comm.SSHPort = port
 
 	return multistep.ActionContinue
 }

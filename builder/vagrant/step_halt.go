@@ -1,8 +1,8 @@
 package vagrant
 
 import (
-	"log"
-	"strings"
+	"context"
+	"fmt"
 
 	"github.com/hashicorp/packer/helper/multistep"
 )
@@ -12,7 +12,7 @@ type StepHalt struct {
 }
 
 func (s *StepHalt) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
-	driver := state.Get("driver").(Driver)
+	driver := state.Get("driver").(VagrantDriver)
 
 	var err error
 	if s.TeardownMethod == "halt" {

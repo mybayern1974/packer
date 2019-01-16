@@ -1,8 +1,7 @@
 package vagrant
 
 import (
-	"log"
-	"strings"
+	"context"
 
 	"github.com/hashicorp/packer/helper/multistep"
 )
@@ -10,7 +9,7 @@ import (
 type StepUp struct{}
 
 func (s *StepUp) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
-	driver := state.Get("driver").(Driver)
+	driver := state.Get("driver").(VagrantDriver)
 
 	_, _, err := driver.Up()
 
