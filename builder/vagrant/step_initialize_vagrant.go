@@ -3,6 +3,7 @@ package vagrant
 import (
 	"context"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/hashicorp/packer/helper/multistep"
@@ -39,6 +40,10 @@ func (s *StepInitializeVagrant) Run(_ context.Context, state multistep.StateBag)
 
 	initArgs = append(initArgs, s.BoxName)
 
+	// Move Packer execution into the output directory.
+	if !SkipPackage {
+		os.Chdir(config.OutputDir)
+	}
 	// Call vagrant using prepared arguments
 	err := driver.Init(initArgs)
 	if err != nil {

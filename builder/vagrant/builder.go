@@ -38,6 +38,7 @@ type Config struct {
 	// This is the name of the new virtual machine.
 	// By default this is "packer-BUILDNAME", where "BUILDNAME" is the name of the build.
 	OutputDir string `mapstructure:"output_dir"`
+	SourceBox string `mapstructure:"source_box"`
 	VMName    string `mapstructure:"vm_name"`
 
 	Communicator string `mapstructure:"communicator"`
@@ -145,11 +146,15 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	state.Put("ui", ui)
 
 	// Build the steps.
-	steps := []multistep.Step{
-		&common.StepOutputDir{
-			Force: b.config.PackerForce,
-			Path:  b.config.OutputDir,
-		},
+	steps := []multistep.Step{}
+	if !SkipPackage {
+		steps = append(steps,
+			&common.StepOutputDir{
+				Force: b.config.PackerForce,
+				Path:  b.config.OutputDir,
+			})
+	}
+	steps = append(steps,
 		&StepInitializeVagrant{
 			BoxVersion: b.config.BoxVersion,
 			Minimal:    b.config.Minimal,
@@ -184,10 +189,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 		new(common.StepProvision),
 		&StepHalt{
 			b.config.TeardownMethod,
-		},
-
-		// Step package box
-	}
+		})
 
 	// Run the steps.
 	b.runner = common.NewRunnerWithPauseFn(steps, b.config.PackerConfig, ui, state)
