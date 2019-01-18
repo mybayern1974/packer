@@ -13,7 +13,9 @@ Required:
 vagrant box. For example, `hashicorp/precise64` or my-company-box
 `https://boxes.company.com/my-company.box` are valid source boxes.
 
-Optional: `output_dir` (string) - The directory to create that will contain
+Optional:
+
+`output_dir` (string) - The directory to create that will contain
 your output box. We always create this directory and run from inside of it to
 prevent Vagrant init collisions. If unset, it will be set to `packer-` plus
 your buildname.

@@ -38,13 +38,13 @@ type Config struct {
 	// This is the name of the new virtual machine.
 	// By default this is "packer-BUILDNAME", where "BUILDNAME" is the name of the build.
 	OutputDir string `mapstructure:"output_dir"`
-	SourceBox string `mapstructure:"source_box"`
-	VMName    string `mapstructure:"vm_name"`
+	BoxURL    string `mapstructure:"box_url"`
+	BoxName   string `mapstructure:"box_name"`
 
 	Communicator string `mapstructure:"communicator"`
 
 	// What vagrantfile to use
-	Vagrantfile string `mapstructure:"vagrantfile"`
+	VagrantfileTpl string `mapstructure:"vagrantfile_template"`
 
 	// Whether to Halt, Suspend, or Destroy the box
 	TeardownMethod string `mapstructure:"teardown_method"`
