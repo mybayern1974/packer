@@ -102,7 +102,7 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 	}
 
 	if b.config.TeardownMethod == "" {
-		b.config.TeardownMethod = "halt"
+		b.config.TeardownMethod = "destroy"
 	} else {
 		matches := false
 		for _, name := range []string{"halt", "suspend", "destroy"} {
@@ -170,10 +170,9 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			Provider:     b.config.Provider,
 			Address:      b.config.VMName,
 		},
-		&StepUp{},
-		// In StepUp, we get ssh information from the vagrant up command stdout.
-		// and save it to state. This function wraps communicator.StepConnect
-		// so that we can pass in the information we need.
+		&StepUp{
+			b.config.TeardownMethod,
+		},
 		&StepSSHConfig{},
 		&communicator.StepConnect{
 			Config:    &b.config.SSHConfig.Comm,
@@ -181,9 +180,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			SSHConfig: b.config.SSHConfig.Comm.SSHConfigFunc(),
 		},
 		new(common.StepProvision),
-		&StepHalt{
-			b.config.TeardownMethod,
-		})
+		&StepPackage{})
 
 	// Run the steps.
 	b.runner = common.NewRunnerWithPauseFn(steps, b.config.PackerConfig, ui, state)
