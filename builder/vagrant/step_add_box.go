@@ -20,11 +20,17 @@ type StepAddBox struct {
 }
 
 func (s *StepAddBox) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
-	// driver := state.Get("driver").(VagrantDriver)
+	driver := state.Get("driver").(VagrantDriver)
 	ui := state.Get("ui").(packer.Ui)
 
-	// Prepare arguments
 	addArgs := []string{}
+
+	if strings.Endswith(s.Address, ".box") {
+		// The box isn't a namespace like you'd pull from vagrant cloud
+		addArgs = append(addArgs, s.BoxName)
+	}
+
+	addArgs = append(addArgs, s.Address)
 
 	if s.BoxVersion != "" {
 		addArgs = append(addArgs, "--box-version", s.BoxVersion)
@@ -57,8 +63,6 @@ func (s *StepAddBox) Run(_ context.Context, state multistep.StateBag) multistep.
 	if s.Provider != "" {
 		addArgs = append(addArgs, "--provider", s.Provider)
 	}
-
-	addArgs = append(addArgs, s.Address)
 
 	log.Printf("[vagrant] Calling box add with following args %s", strings.Join(addArgs, " "))
 	// Call vagrant using prepared arguments

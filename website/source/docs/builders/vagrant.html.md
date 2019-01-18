@@ -9,9 +9,9 @@ builder that you have already installed what you need.
 
 Required:
 
-`base_image` (string) - URL of the vagrant box to use, or the name of the
-vagrant box. For example, `hashicorp/precise64` or my-company-box
-`https://boxes.company.com/my-company.box` are valid source boxes.
+`source_box` (string) - URL of the vagrant box to use, or the name of the
+vagrant box. For example, `hashicorp/precise64` or
+`https://boxes.company.com/my-company.box` are valid source boxes. If using a URL like the latter example above, you will also need to provide a `box_name`.
 
 Optional:
 
@@ -52,15 +52,15 @@ in `vagrant add`; defaults to unset.
 
 `add_clean` (bool) - Equivalent to setting the
 [`--clean`](https://www.vagrantup.com/docs/cli/box.html#clean) flag in
-`vagratn add`; defaults to unset.
+`vagrant add`; defaults to unset.
 
 `add_force` (bool) - Equivalent to setting the
 [`--force`](https://www.vagrantup.com/docs/cli/box.html#force) flag in
-`vagratn add`; defaults to unset.
+`vagrant add`; defaults to unset.
 
 `add_insecure` (bool) - Equivalent to setting the
 [`--force`](https://www.vagrantup.com/docs/cli/box.html#insecure) flag in
-`vagratn add`; defaults to unset.
+`vagrant add`; defaults to unset.
 
 `skip_package` (bool) - if true, Packer will not call `vagrant package` to
 package your base box into its own standalone .box file.

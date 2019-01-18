@@ -38,7 +38,7 @@ type Config struct {
 	// This is the name of the new virtual machine.
 	// By default this is "packer-BUILDNAME", where "BUILDNAME" is the name of the build.
 	OutputDir string `mapstructure:"output_dir"`
-	BoxURL    string `mapstructure:"box_url"`
+	SourceBox string `mapstructure:"source_box"`
 	BoxName   string `mapstructure:"box_name"`
 
 	Communicator string `mapstructure:"communicator"`
@@ -50,21 +50,17 @@ type Config struct {
 	TeardownMethod string `mapstructure:"teardown_method"`
 
 	// Options for the "vagrant init" command
-	BoxVersion        string `mapstructure:"box_version"`
-	Minimal           bool   `mapstructure:"init_minimal"`
-	OutputVagrantfile string `mapstructure:"output_vagrantfile"`
-	Template          string `mapstructure:"template"`
+	BoxVersion string `mapstructure:"box_version"`
+	Minimal    bool   `mapstructure:"init_minimal"`
+	Template   string `mapstructure:"template"`
 
 	// Options for the "vagrant box add" command
-	AddCACert       string `mapstructure:"add_cacert"`
-	AddCAPath       string `mapstructure:"add_capath"`
-	AddDownloadCert string `mapstructure:"add_cert"`
-	AddClean        bool   `mapstructure:"add_clean"`
-	AddForce        bool   `mapstructure:"add_force"`
-	AddInsecure     bool   `mapstructure:"add_insecure"`
-
-	// what folder to sync. Defaults to current build dir.
-	SyncedFolder string `mapstructure:"synced_folder"`
+	AddCACert   string `mapstructure:"add_cacert"`
+	AddCAPath   string `mapstructure:"add_capath"`
+	AddCert     string `mapstructure:"add_cert"`
+	AddClean    bool   `mapstructure:"add_clean"`
+	AddForce    bool   `mapstructure:"add_force"`
+	AddInsecure bool   `mapstructure:"add_insecure"`
 
 	// Don't package the Vagrant box after build.
 	SkipPackage bool `mapstructure:"skip_package"`
@@ -156,25 +152,23 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	}
 	steps = append(steps,
 		&StepInitializeVagrant{
+			BoxName:    b.config.BoxName,
 			BoxVersion: b.config.BoxVersion,
 			Minimal:    b.config.Minimal,
 			Template:   b.config.Template,
-			BoxName:    b.config.VMName,
+			SourceBox:  b.config.SourceBox,
+			OutputDir:  b.config.OutputDir,
 		},
-		// &StepAddBox{
-		// 	BoxVersion:   b.config.BoxVersion,
-		// 	CACert:       b.config.AddCACert,
-		// 	CAPath:       b.config.AddCAPath,
-		// 	DownloadCert: b.config.AddDownloadCert,
-		// 	Clean:        b.config.AddClean,
-		// 	Force:        b.config.AddForce,
-		// 	Insecure:     b.config.AddInsecure,
-		// 	Provider:     b.config.Provider,
-		// 	Address:      b.config.VMName,
-		// },
-		// Don't need an http server when vagrant does sharing for us.
-		&StepSyncedFolder{
-			SyncedFolder: b.config.SyncedFolder,
+		&StepAddBox{
+			BoxVersion:   b.config.BoxVersion,
+			CACert:       b.config.AddCACert,
+			CAPath:       b.config.AddCAPath,
+			DownloadCert: b.config.AddCert,
+			Clean:        b.config.AddClean,
+			Force:        b.config.AddForce,
+			Insecure:     b.config.AddInsecure,
+			Provider:     b.config.Provider,
+			Address:      b.config.VMName,
 		},
 		&StepUp{},
 		// In StepUp, we get ssh information from the vagrant up command stdout.
