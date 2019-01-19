@@ -12,8 +12,6 @@ const BuilderId = "vagrant"
 // Artifact is the result of running the vagrant builder, namely a set
 // of files associated with the resulting machine.
 type artifact struct {
-	boxName  string
-	globalID string
 }
 
 // NewArtifact returns a hyperv artifact containing the files

@@ -32,14 +32,10 @@ func (s *StepUp) Cleanup(state multistep.StateBag) {
 	} else if s.TeardownMethod == "destroy" {
 		err = driver.Destroy()
 	} else {
+		// Should never get here because of template validation
 		state.Put("error", fmt.Errorf("Invalid teardown method selected; must be either halt, suspend, or destory."))
-		return multistep.ActionHalt
 	}
 	if err != nil {
 		state.Put("error", fmt.Errorf("Error halting Vagrant machine; please try to do this manually"))
-		return multistep.ActionHalt
 	}
-
-	return multistep.ActionContinue
-}
 }

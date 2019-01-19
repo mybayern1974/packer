@@ -37,9 +37,9 @@ type Config struct {
 
 	// This is the name of the new virtual machine.
 	// By default this is "packer-BUILDNAME", where "BUILDNAME" is the name of the build.
-	OutputDir string `mapstructure:"output_dir"`
-	SourceBox string `mapstructure:"source_box"`
-	BoxName   string `mapstructure:"box_name"`
+	OutputDir     string `mapstructure:"output_dir"`
+	SourceBox     string `mapstructure:"source_box"`
+	SourceBoxName string `mapstructure:"source_box_name"`
 
 	Communicator string `mapstructure:"communicator"`
 
@@ -63,7 +63,9 @@ type Config struct {
 	AddInsecure bool   `mapstructure:"add_insecure"`
 
 	// Don't package the Vagrant box after build.
-	SkipPackage bool `mapstructure:"skip_package"`
+	SkipPackage       bool     `mapstructure:"skip_package"`
+	OutputVagrantfile string   `mapstructure:output_vagrantfile`
+	PackageInclude    []string `mapstructure:package_include`
 
 	ctx interpolate.Context
 }
@@ -180,7 +182,11 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			SSHConfig: b.config.SSHConfig.Comm.SSHConfigFunc(),
 		},
 		new(common.StepProvision),
-		&StepPackage{})
+		&StepPackage{
+			SkipPackage: b.config.SkipPackage,
+			Include:     b.config.PackageInclude,
+			Vagrantfile: b.config.OutputVagrantfile,
+		})
 
 	// Run the steps.
 	b.runner = common.NewRunnerWithPauseFn(steps, b.config.PackerConfig, ui, state)
