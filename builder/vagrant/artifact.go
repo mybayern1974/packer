@@ -12,13 +12,16 @@ const BuilderId = "vagrant"
 // Artifact is the result of running the vagrant builder, namely a set
 // of files associated with the resulting machine.
 type artifact struct {
+	OutputDir string
+	BoxName   string
 }
 
-// NewArtifact returns a hyperv artifact containing the files
-// in the given directory.
+// NewArtifact returns a vagrant artifact containing the .box file
 func NewArtifact(dir string) (packer.Artifact, error) {
-
-	return &artifact{}, nil
+	return &artifact{
+		OutputDir: dir,
+		BoxName:   "package.box",
+	}, nil
 }
 
 func (*artifact) BuilderId() string {
@@ -26,15 +29,15 @@ func (*artifact) BuilderId() string {
 }
 
 func (a *artifact) Files() []string {
-	return []string{""}
+	return []string{a.BoxName}
 }
 
 func (*artifact) Id() string {
-	return "Box"
+	return filepath.Join(a.OutputDir, a.BoxName)
 }
 
 func (a *artifact) String() string {
-	return fmt.Sprintf("Vagrant box global ID is: %s", a.globalID)
+	return fmt.Sprintf("Vagrant box is  %s", a.Id)
 }
 
 func (a *artifact) State(name string) interface{} {
