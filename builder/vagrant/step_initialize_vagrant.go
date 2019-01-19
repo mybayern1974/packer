@@ -60,7 +60,7 @@ func (s *StepInitializeVagrant) Run(_ context.Context, state multistep.StateBag)
 	tplPath := filepath.Join(s.OutputDir, "packer-vagrantfile-template.erb")
 	templateFile, err := os.Create(tplPath)
 	if err != nil {
-		state.Put("error", fmt.Errorf("Error creating vagrantfile ", err.Error()))
+		state.Put("error", fmt.Errorf("Error creating vagrantfile %s", err.Error()))
 		return multistep.ActionHalt
 	}
 

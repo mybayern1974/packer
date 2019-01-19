@@ -66,8 +66,8 @@ type Config struct {
 
 	// Don't package the Vagrant box after build.
 	SkipPackage       bool     `mapstructure:"skip_package"`
-	OutputVagrantfile string   `mapstructure:output_vagrantfile`
-	PackageInclude    []string `mapstructure:package_include`
+	OutputVagrantfile string   `mapstructure:"output_vagrantfile"`
+	PackageInclude    []string `mapstructure:"package_include"`
 
 	ctx interpolate.Context
 }
