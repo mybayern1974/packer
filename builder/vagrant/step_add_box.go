@@ -2,6 +2,8 @@ package vagrant
 
 import (
 	"context"
+	"log"
+	"strings"
 
 	"github.com/hashicorp/packer/helper/multistep"
 	"github.com/hashicorp/packer/packer"
@@ -16,21 +18,23 @@ type StepAddBox struct {
 	Force        bool
 	Insecure     bool
 	Provider     string
-	Address      string
+	SourceBox    string
+	BoxName      string
 }
 
 func (s *StepAddBox) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
 	driver := state.Get("driver").(VagrantDriver)
 	ui := state.Get("ui").(packer.Ui)
 
+	ui.Say("Adding box using vagrant box add..")
 	addArgs := []string{}
 
-	if strings.Endswith(s.Address, ".box") {
+	if strings.HasSuffix(s.SourceBox, ".box") {
 		// The box isn't a namespace like you'd pull from vagrant cloud
 		addArgs = append(addArgs, s.BoxName)
 	}
 
-	addArgs = append(addArgs, s.Address)
+	addArgs = append(addArgs, s.SourceBox)
 
 	if s.BoxVersion != "" {
 		addArgs = append(addArgs, "--box-version", s.BoxVersion)

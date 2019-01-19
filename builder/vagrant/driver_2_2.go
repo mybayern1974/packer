@@ -52,7 +52,7 @@ func (d *Vagrant_2_2_Driver) Destroy() error {
 }
 
 // Calls "vagrant package"
-func (d *Vagrant_2_2_Driver) Package(output string, include []string, vagrantfile string) error {
+func (d *Vagrant_2_2_Driver) Package(args []string) error {
 	_, _, err := d.vagrantCmd([]string{"package"}...)
 	return err
 }

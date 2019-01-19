@@ -30,8 +30,8 @@ type VagrantDriver interface {
 	// Calls "vagrant destroy"
 	Destroy() error
 
-	// Calls "vagrant package"
-	Package(output string, include []string, vagrantfile string) error
+	// Calls "vagrant package"[
+	Package([]string) error
 
 	// Verify checks to make sure that this driver should function
 	// properly. If there is any indication the driver can't function,

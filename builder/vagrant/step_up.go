@@ -2,11 +2,14 @@ package vagrant
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/packer/helper/multistep"
 )
 
-type StepUp struct{}
+type StepUp struct {
+	TeardownMethod string
+}
 
 func (s *StepUp) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
 	driver := state.Get("driver").(VagrantDriver)

@@ -2,7 +2,6 @@ package vagrant
 
 import (
 	"context"
-	"log"
 	"strconv"
 
 	"github.com/hashicorp/packer/helper/multistep"

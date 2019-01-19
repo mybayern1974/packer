@@ -2,23 +2,23 @@ package vagrant
 
 import (
 	"context"
-	"interpolate"
-	"log"
+	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
+	"text/template"
 
 	"github.com/hashicorp/packer/helper/multistep"
 	"github.com/hashicorp/packer/packer"
 )
 
 type StepInitializeVagrant struct {
-	BoxName    string
-	BoxVersion string
-	Minimal    bool
-	Template   string
-	SourceBox  string
-	OutputDir  string
+	BoxName      string
+	BoxVersion   string
+	Minimal      bool
+	Template     string
+	SourceBox    string
+	OutputDir    string
+	SyncedFolder string
 }
 
 var DEFAULT_TEMPLATE = `Vagrant.configure("2") do |config|
@@ -43,7 +43,7 @@ func (s *StepInitializeVagrant) Run(_ context.Context, state multistep.StateBag)
 	// Prepare arguments
 	initArgs := []string{}
 
-	if s.BoxName {
+	if s.BoxName != "" {
 		initArgs = append(initArgs, s.BoxName)
 	}
 
@@ -57,23 +57,24 @@ func (s *StepInitializeVagrant) Run(_ context.Context, state multistep.StateBag)
 		initArgs = append(initArgs, "-m")
 	}
 
-	if s.Template == "" {
-		// Generate vagrantfile template based on our default
-		tpl := template.Must(template.New("VagrantTpl").Parse(DEFAULT_TEMPLATE))
-		tplPath := filepath.Join(s.OutputDir, "packer-vagrantfile-template.erb")
-	} else {
-		// Read in the template from provided file.
-		tpl, err := template.ParseFiles(s.Template)
-		if err != nil {
-			log.Print(err)
-			return
-		}
-	}
-
+	tplPath := filepath.Join(s.OutputDir, "packer-vagrantfile-template.erb")
 	templateFile, err := os.Create(tplPath)
 	if err != nil {
-		log.Println("Error creating vagrantfile ", err)
-		return
+		state.Put("error", fmt.Errorf("Error creating vagrantfile ", err.Error()))
+		return multistep.ActionHalt
+	}
+
+	var tpl *template.Template
+	if s.Template == "" {
+		// Generate vagrantfile template based on our default
+		tpl = template.Must(template.New("VagrantTpl").Parse(DEFAULT_TEMPLATE))
+	} else {
+		// Read in the template from provided file.
+		tpl, err = template.ParseFiles(s.Template)
+		if err != nil {
+			state.Put("error", err)
+			return multistep.ActionHalt
+		}
 	}
 
 	opts := &VagrantfileOptions{
@@ -82,7 +83,8 @@ func (s *StepInitializeVagrant) Run(_ context.Context, state multistep.StateBag)
 
 	err = tpl.Execute(templateFile, opts)
 	if err != nil {
-		return "", err
+		state.Put("error", err)
+		return multistep.ActionHalt
 	}
 	initArgs = append(initArgs, "--template", s.Template)
 

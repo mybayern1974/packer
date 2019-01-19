@@ -40,6 +40,7 @@ type Config struct {
 	OutputDir     string `mapstructure:"output_dir"`
 	SourceBox     string `mapstructure:"source_box"`
 	SourceBoxName string `mapstructure:"source_box_name"`
+	Provider      string `mapstructure:"provider"`
 
 	Communicator string `mapstructure:"communicator"`
 
@@ -50,9 +51,10 @@ type Config struct {
 	TeardownMethod string `mapstructure:"teardown_method"`
 
 	// Options for the "vagrant init" command
-	BoxVersion string `mapstructure:"box_version"`
-	Minimal    bool   `mapstructure:"init_minimal"`
-	Template   string `mapstructure:"template"`
+	BoxVersion   string `mapstructure:"box_version"`
+	Minimal      bool   `mapstructure:"init_minimal"`
+	Template     string `mapstructure:"template"`
+	SyncedFolder string `mapstructure:"synced_folder"`
 
 	// Options for the "vagrant box add" command
 	AddCACert   string `mapstructure:"add_cacert"`
@@ -145,7 +147,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 
 	// Build the steps.
 	steps := []multistep.Step{}
-	if !SkipPackage {
+	if !b.config.SkipPackage {
 		steps = append(steps,
 			&common.StepOutputDir{
 				Force: b.config.PackerForce,
@@ -154,7 +156,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	}
 	steps = append(steps,
 		&StepInitializeVagrant{
-			BoxName:    b.config.BoxName,
+			BoxName:    b.config.SourceBoxName,
 			BoxVersion: b.config.BoxVersion,
 			Minimal:    b.config.Minimal,
 			Template:   b.config.Template,
@@ -170,7 +172,8 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			Force:        b.config.AddForce,
 			Insecure:     b.config.AddInsecure,
 			Provider:     b.config.Provider,
-			Address:      b.config.VMName,
+			SourceBox:    b.config.SourceBox,
+			BoxName:      b.config.SourceBoxName,
 		},
 		&StepUp{
 			b.config.TeardownMethod,

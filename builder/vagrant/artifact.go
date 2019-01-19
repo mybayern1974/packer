@@ -2,6 +2,7 @@ package vagrant
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/hashicorp/packer/packer"
 )
@@ -32,7 +33,7 @@ func (a *artifact) Files() []string {
 	return []string{a.BoxName}
 }
 
-func (*artifact) Id() string {
+func (a *artifact) Id() string {
 	return filepath.Join(a.OutputDir, a.BoxName)
 }
 
